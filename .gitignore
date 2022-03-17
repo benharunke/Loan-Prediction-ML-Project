@@ -1,129 +1,203 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+# Data analysis and visualization
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from math import pi
+import seaborn as sns
 
-# C extensions
-*.so
+# classifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# metrics
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+file_train ='C:/Users/Sony/.spyder-py3/makine öğreniyor/train_u6lujuX_CVtuZ9i.csv' 
+file_test = 'C:/Users/Sony/.spyder-py3/makine öğreniyor/test_Y3wMUE5_7gLdaTN.csv'
+loan_train = pd.read_csv(file_train)
+loan_test = pd.read_csv(file_test)
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+loan_train.head()
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
 
-# Translations
-*.mo
-*.pot
+import seaborn as sns
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+plt.figure(figsize=(10,6))
+sns.displot(
+    data=loan_train.isna().melt(value_name="missing"),
+    y="variable",
+    hue="missing",
+    multiple="fill",
+    aspect=1.25)
 
-# Flask stuff:
-instance/
-.webassets-cache
+plt.show()
+loan_train['Credit_History'].fillna(method='ffill', inplace=True)
+loan_train['Credit_History'].isna().values.any()
 
-# Scrapy stuff:
-.scrapy
+median_loan = loan_train['Loan_Amount_Term'].median()
+loan_train['Loan_Amount_Term'].fillna((median_loan), inplace=True)
+loan_train['Loan_Amount_Term'].isna().values.any()
 
-# Sphinx documentation
-docs/_build/
 
-# PyBuilder
-target/
+median_loan_amount = loan_train['LoanAmount'].median()
+loan_train['LoanAmount'].fillna((median_loan_amount), inplace=True)
+loan_train['LoanAmount'].isna().values.any()
 
-# Jupyter Notebook
-.ipynb_checkpoints
 
-# IPython
-profile_default/
-ipython_config.py
 
-# pyenv
-.python-version
+loan_train['Self_Employed'].value_counts()
+loan_train['Self_Employed'].fillna('No', inplace=True)
+loan_train['Self_Employed'].isna().values.any()
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
-__pypackages__/
+loan_train['Dependents'].fillna(0, inplace=True)
+loan_train['Dependents'].isna().values.any()
 
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
 
-# SageMath parsed files
-*.sage.py
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+loan_train['Married'].mode()
+loan_train['Married'].fillna('Yes', inplace=True)
+loan_train['Married'].isna().values.any()
 
-# Spyder project settings
-.spyderproject
-.spyproject
 
-# Rope project settings
-.ropeproject
+loan_train['Gender'].mode()
+loan_train['Gender'].fillna('Male', inplace=True)
+loan_train['Gender'].isna().values.any()
+loan_train.isna().sum()
 
-# mkdocs documentation
-/site
+# fill in credit history
+loan_test['Credit_History'].fillna(method='ffill', inplace=True)
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# fill in loan amount term
+median_loan_test = loan_test['Loan_Amount_Term'].median()
+loan_test['Loan_Amount_Term'].fillna((median_loan_test), inplace=True)
 
-# Pyre type checker
-.pyre/
+# fill in loan amount
+median_loan_amount_test = loan_test['LoanAmount'].median()
+loan_test['LoanAmount'].fillna((median_loan_amount_test), inplace=True)
+
+# fill in self employed
+loan_test['Self_Employed'].fillna('No', inplace=True)
+
+# fill in dependents
+loan_test['Dependents'].fillna(0, inplace=True)
+
+# fill in gender
+loan_test['Gender'].fillna('Male', inplace=True)
+
+loan_train.duplicated().values.any()
+
+loan_test.duplicated().values.any()
+
+fig, ax = plt.subplots(3, 2, figsize=(16, 18))
+
+loan_train.groupby(['Gender'])[['Gender']].count().plot.bar(
+    color=plt.cm.Paired(np.arange(len(loan_train))), ax=ax[0,0])
+loan_train.groupby(['Married'])[['Married']].count().plot.bar(
+    color=plt.cm.Paired(np.arange(len(loan_train))), ax=ax[0,1])
+loan_train.groupby(['Education'])[['Education']].count().plot.bar(
+    color=plt.cm.Paired(np.arange(len(loan_train))), ax=ax[1,0])
+loan_train.groupby(['Self_Employed'])[['Self_Employed']].count().plot.bar(
+    color=plt.cm.Paired(np.arange(len(loan_train))), ax=ax[1,1])
+
+loan_train.groupby(['Loan_Status'])[['Loan_Status']].count().plot.bar(
+    color=plt.cm.Paired(np.arange(len(loan_train))),ax=ax[2,0])
+loan_train.groupby(['Property_Area'])[['Loan_Status']].count().plot.bar(
+    color=plt.cm.Paired(np.arange(len(loan_train))),ax=ax[2,1])
+
+plt.show()
+
+categorical_columns = loan_train.select_dtypes('object').columns.to_list()
+
+# Then, I filter he list to remove Loan_ID column which is not relevant to the analysis
+categorical_columns[1:]
+
+
+for i in categorical_columns[1:]: 
+    plt.figure(figsize=(15,10))
+    plt.subplot(3,2,1)
+    sns.countplot(x=i ,hue='Loan_Status', data=loan_train, palette='ocean')
+    plt.xlabel(i, fontsize=14)
+    
+
+#Plot4- Scatterplot
+fig, ax = plt.subplots(2,2, figsize=(14,12))
+
+sns.scatterplot(data=loan_train,x="ApplicantIncome", y="LoanAmount",s=70, hue="Loan_Status", palette='ocean',ax=ax[0,0])
+sns.histplot(loan_train, x=loan_train['LoanAmount'], bins=10, ax=ax[0,1])
+sns.scatterplot(data=loan_train,x='CoapplicantIncome', y='LoanAmount',s=70, hue='Loan_Status',palette='ocean', ax=ax[1,0])
+sns.scatterplot(data=loan_train,x='Loan_Amount_Term', y='LoanAmount', s=70, hue='Loan_Status',palette='ocean', ax=ax[1,1])
+
+plt.show()
+
+loan_train.corr()
+# Let's plot correlation overview of the variables.
+
+fig, ax = plt.subplots(figsize=(9, 7))
+correlations = loan_train.corr()
+  
+# plotting correlation heatmap
+dataplot = sns.heatmap(correlations, cmap="YlGnBu", annot=True)
+  
+# displaying heatmap
+plt.show()
+#first identify all categorical columns & pass into a variable
+objectlist_train = loan_train.select_dtypes(include = "object").columns
+
+
+# Then Label Encoding for object to numeric conversion
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+
+for feature in objectlist_train:
+    loan_train[feature] = le.fit_transform(loan_train[feature].astype(str))
+
+print (loan_train.info())
+
+
+objectlist_test = loan_test.select_dtypes(include='object').columns
+
+for feature in objectlist_test:
+    loan_test[feature] = le.fit_transform(loan_test[feature].astype(str))
+
+print (loan_test.info())
+
+fig, ax = plt.subplots(figsize=(10, 8))
+correlations_ML = loan_train.iloc[:,1:].corr() # filer out the Loan_ID column as it is not relevant
+sns.heatmap(correlations_ML, cmap="YlGnBu", annot=True)
+plt.show()
+    
+x = loan_train.iloc[:,1:].drop('Loan_Status', axis=1) # drop loan_status column because that is what we are predicting
+y = loan_train['Loan_Status']
+train_x, test_x, train_y, test_y = train_test_split(x, y, test_size=0.30, random_state=0)
+'''DECISIONTREE CLASSİFİER '''
+df_model = DecisionTreeClassifier()
+df_model.fit(train_x, train_y)
+predict_y = df_model.predict(test_x)
+print(classification_report(test_y, predict_y))
+print("Accuracy:", accuracy_score(predict_y, test_y))
+''' RANDOM FOREST '''
+
+rf_model = RandomForestClassifier(n_estimators=100)
+rf_model.fit(train_x, train_y)
+predict_y_2 = rf_model.predict(test_x)
+print(classification_report(test_y, predict_y_2))
+print("Accuracy:", accuracy_score(predict_y_2, test_y))
+'''LOGİSTİC REGRESSİON '''
+lr_model = LogisticRegression(solver='lbfgs', multi_class='auto')
+lr_model.fit(train_x, train_y)
+predict_y_3 = lr_model.predict(test_x)
+print(classification_report(test_y, predict_y_3))
+print("Accuracy:", accuracy_score(predict_y_3, test_y)) 
+
+
+
+
+
+
